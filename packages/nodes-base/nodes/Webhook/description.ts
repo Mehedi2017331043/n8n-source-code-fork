@@ -88,9 +88,21 @@ export const credentialsProperty = (
 	},
 ];
 
+// Webhook-only options. Header Auth is the single header option and the default.
+// Other nodes that reuse `authenticationProperty` (for example Wait) keep their own options.
+export const webhookAuthenticationOptions: INodePropertyOptions[] = [
+	{
+		name: 'Header Auth',
+		value: 'headerAuth',
+	},
+	n8nOAuth2AuthOption,
+];
+
+export const webhookAuthenticationDefault = 'headerAuth';
+
 export const inboundTriggerAuthenticationBuilderHint = {
 	propertyHint:
-		"Default to 'none'. n8n exposes inbound trigger URLs publicly by design. Only select an authentication method when the user explicitly asks to authenticate inbound traffic.",
+		"Default to 'headerAuth'. Header Auth is required on every webhook. Only select 'n8nOAuth2' when the user explicitly asks for n8n user authentication.",
 };
 
 export const authenticationProperty = (

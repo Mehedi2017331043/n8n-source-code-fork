@@ -33,6 +33,8 @@ import {
 	requireExecuteAccessProperty,
 	responseBinaryPropertyNameProperty,
 	responseCodeOption,
+	webhookAuthenticationDefault,
+	webhookAuthenticationOptions,
 	responseCodeProperty,
 	responseDataProperty,
 	responseModeProperty,
@@ -154,6 +156,8 @@ export class Webhook extends Node {
 			},
 			{
 				...authenticationProperty(this.authPropertyName, true),
+				options: webhookAuthenticationOptions,
+				default: webhookAuthenticationDefault,
 				builderHint: inboundTriggerAuthenticationBuilderHint,
 			},
 			requireExecuteAccessProperty(this.authPropertyName),

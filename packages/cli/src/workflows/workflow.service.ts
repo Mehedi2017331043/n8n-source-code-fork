@@ -706,6 +706,13 @@ export class WorkflowService {
 			this.WorkflowVersionedSettingsService.isEnabled(),
 		);
 
+		// Move legacy webhook auth to Header Auth before the change check, so an unchanged legacy webhook still saves.
+		if (workflowUpdateData.nodes) {
+			workflowUpdateData.nodes = WorkflowHelpers.migrateWebhookAuthentication(
+				workflowUpdateData.nodes,
+			);
+		}
+
 		// Save a new version when nodes, connections, nodeGroups, or a version-scoped setting change
 		const hasNodesKey = 'nodes' in workflowUpdateData;
 		const hasConnectionsKey = 'connections' in workflowUpdateData;

@@ -149,46 +149,6 @@ test.describe(
 			expect(responseData).toBe('');
 		});
 
-		test('should listen for a GET request with Basic Authentication', async ({ n8n }) => {
-			const credentialName = `test-${nanoid()}`;
-			const user = `test-${nanoid()}`;
-			const password = `test-${nanoid()}`;
-			await n8n.credentialsComposer.createFromApi({
-				type: 'httpBasicAuth',
-				name: credentialName,
-				data: {
-					user,
-					password,
-				},
-			});
-
-			await n8n.canvas.addNode('Webhook');
-			await n8n.ndv.setupHelper.webhook({
-				httpMethod: 'GET',
-				authentication: 'Basic Auth',
-			});
-			const webhookPath = await n8n.ndv.setupHelper.getWebhookPath();
-
-			await n8n.ndv.credentials.selectByName(credentialName);
-
-			await n8n.ndv.execute();
-			await expect(n8n.ndv.getWebhookTestEvent()).toBeVisible();
-
-			const failResponse = await n8n.api.webhooks.trigger(`/webhook-test/${webhookPath}`, {
-				headers: {
-					Authorization: 'Basic ' + Buffer.from('wrong:wrong').toString('base64'),
-				},
-			});
-			expect(failResponse.status()).toBe(401);
-
-			const successResponse = await n8n.api.webhooks.trigger(`/webhook-test/${webhookPath}`, {
-				headers: {
-					Authorization: 'Basic ' + Buffer.from(`${user}:${password}`).toString('base64'),
-				},
-			});
-			expect(successResponse.ok()).toBe(true);
-		});
-
 		test('should listen for a GET request with Header Authentication', async ({ n8n }) => {
 			const credentialName = `test-${nanoid()}`;
 			// Keep the header NAME underscore-free: proxies commonly drop request headers

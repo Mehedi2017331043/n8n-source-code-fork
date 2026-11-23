@@ -10,24 +10,36 @@ vi.mock('fs/promises');
 const mockFs = vi.mocked(fs);
 
 const INBOUND_TRIGGER_AUTHENTICATION_BUILDER_HINT =
-	"Default to 'none'. n8n exposes inbound trigger URLs publicly by design. Only select an authentication method when the user explicitly asks to authenticate inbound traffic.";
+	"Default to 'headerAuth'. Header Auth is required on every webhook. Only select 'n8nOAuth2' when the user explicitly asks for n8n user authentication.";
 
 describe('Test Webhook Node', () => {
 	new NodeTestHarness().setupTests();
 
 	describe('description', () => {
-		it('should tell builders to keep inbound authentication disabled unless requested', () => {
+		it('defaults authentication to Header Auth and tells builders so', () => {
 			const node = new Webhook();
 			const authParam = node.description.properties.find(
 				(property) => property.name === 'authentication',
 			);
 
 			expect(authParam).toMatchObject({
-				default: 'none',
+				default: 'headerAuth',
 				builderHint: {
 					propertyHint: INBOUND_TRIGGER_AUTHENTICATION_BUILDER_HINT,
 				},
 			});
+		});
+
+		it('offers only Header Auth and n8n User Auth (OAuth2), with Header Auth first', () => {
+			const node = new Webhook();
+			const authParam = node.description.properties.find(
+				(property) => property.name === 'authentication',
+			);
+
+			expect(authParam?.options?.map((option) => option.value)).toEqual([
+				'headerAuth',
+				'n8nOAuth2',
+			]);
 		});
 
 		it('disallows expressions on the authentication selector so raw and resolved values cannot diverge', () => {
@@ -37,15 +49,6 @@ describe('Test Webhook Node', () => {
 			);
 
 			expect(authParam?.noDataExpression).toBe(true);
-		});
-
-		it('exposes the n8nOAuth2 authentication option', () => {
-			const node = new Webhook();
-			const authParam = node.description.properties.find(
-				(property) => property.name === 'authentication',
-			);
-
-			expect(authParam?.options).toContainEqual(expect.objectContaining({ value: 'n8nOAuth2' }));
 		});
 
 		it('exposes the requireExecuteAccess toggle, on by default and scoped to the n8nOAuth2 mode', () => {

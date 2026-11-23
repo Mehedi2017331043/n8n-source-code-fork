@@ -21,6 +21,7 @@ import {
 	summarizeSubWorkflowRedaction,
 	validateWorkflowGroups,
 	type IDataObject,
+	type INode,
 	type INodeCredentialsDetails,
 	type INodeTypes,
 	type IRun,
@@ -78,6 +79,28 @@ export function validatePinDataSize(workflow: IWorkflowBase): void {
 /**
  * Set node ids if not already set
  */
+// Webhook auth options that the editor no longer offers. Saved values stay valid at runtime.
+const WEBHOOK_NODE_TYPE = 'n8n-nodes-base.webhook';
+const REMOVED_WEBHOOK_AUTHENTICATION = new Set<unknown>(['none', 'basicAuth', 'jwtAuth']);
+
+/**
+ * Sets a webhook node without authentication, or with a removed option, to Header Auth.
+ * Returns new node objects and does not change the input.
+ */
+export function migrateWebhookAuthentication<T extends INode>(nodes: T[]): T[] {
+	const migrated = nodes.map((node) => {
+		if (node.type !== WEBHOOK_NODE_TYPE) return node;
+
+		const current = node.parameters.authentication;
+		if (current !== undefined && !REMOVED_WEBHOOK_AUTHENTICATION.has(current)) return node;
+
+		return { ...node, parameters: { ...node.parameters, authentication: 'headerAuth' } };
+	});
+
+	// Keep the caller's array when nothing changed.
+	return migrated.some((node, index) => node !== nodes[index]) ? migrated : nodes;
+}
+
 export function addNodeIds(workflow: IWorkflowBase) {
 	const { nodes } = workflow;
 	if (!nodes) return;

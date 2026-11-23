@@ -71,6 +71,7 @@ describe('WorkflowCreationService', () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks();
+		vi.mocked(WorkflowHelpers.migrateWebhookAuthentication).mockImplementation((nodes) => nodes);
 
 		loggerMock = mock<Logger>();
 		credentialsFinderServiceMock = mock<CredentialsFinderService>();

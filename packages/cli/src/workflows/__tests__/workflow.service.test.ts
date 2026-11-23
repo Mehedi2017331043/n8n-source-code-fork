@@ -91,6 +91,7 @@ describe('WorkflowService', () => {
 		let restrictedNodeTypesProviderMock: MockProxy<RestrictedNodeTypesProviderProxy>;
 
 		beforeEach(() => {
+			vi.mocked(WorkflowHelpers.migrateWebhookAuthentication).mockImplementation((nodes) => nodes);
 			workflowRepositoryMock = mock();
 			workflowRepositoryMock.getManyAndCountWithSharingSubquery.mockResolvedValue({
 				workflows: [],

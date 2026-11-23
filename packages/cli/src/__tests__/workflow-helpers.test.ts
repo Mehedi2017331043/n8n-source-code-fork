@@ -5,8 +5,9 @@ import { CredentialsRepository } from '@n8n/db';
 import { GROUP_DESCRIPTION_MAX_LENGTH, STICKY_NODE_TYPE } from 'n8n-workflow';
 import type {
 	DynamicCredentialsUsage,
-	IExecutionContext,
 	ExecutionError,
+	IExecutionContext,
+	INode,
 	INodeCredentialsDetails,
 	IRun,
 	ITaskData,
@@ -24,6 +25,7 @@ import {
 	getLastExecutedNodeData,
 	getLastExecutedNodeRuns,
 	getVariables,
+	migrateWebhookAuthentication,
 	preserveInputOverride,
 	removeDefaultValues,
 	replaceInvalidCredentials,
@@ -1688,5 +1690,60 @@ describe('updateParentExecutionWithChildResults', () => {
 			expect(patched).toBe(true);
 			expect(executionPersistence.updateExistingExecution).toHaveBeenCalledTimes(1);
 		});
+	});
+});
+
+describe('migrateWebhookAuthentication', () => {
+	const webhookNode = (name: string, parameters: INode['parameters']): INode => ({
+		id: name,
+		name,
+		type: 'n8n-nodes-base.webhook',
+		typeVersion: 2.2,
+		position: [0, 0],
+		parameters,
+	});
+
+	it.each([
+		['no authentication parameter', {}],
+		['none', { authentication: 'none' }],
+		['basicAuth', { authentication: 'basicAuth' }],
+		['jwtAuth', { authentication: 'jwtAuth' }],
+	])('sets Header Auth when the webhook has %s', (_label, parameters) => {
+		const [migrated] = migrateWebhookAuthentication([webhookNode('Webhook', parameters)]);
+
+		expect(migrated.parameters.authentication).toBe('headerAuth');
+	});
+
+	it.each(['headerAuth', 'n8nOAuth2'])('keeps the %s value', (value) => {
+		const node = webhookNode('Webhook', { authentication: value });
+
+		const [migrated] = migrateWebhookAuthentication([node]);
+
+		expect(migrated).toBe(node);
+	});
+
+	it('leaves non-webhook nodes unchanged', () => {
+		const wait: INode = {
+			...webhookNode('Wait', { authentication: 'none' }),
+			type: 'n8n-nodes-base.wait',
+		};
+
+		const [migrated] = migrateWebhookAuthentication([wait]);
+
+		expect(migrated).toBe(wait);
+	});
+
+	it('does not change the input nodes', () => {
+		const node = webhookNode('Webhook', { authentication: 'none' });
+
+		migrateWebhookAuthentication([node]);
+
+		expect(node.parameters.authentication).toBe('none');
+	});
+
+	it('is idempotent', () => {
+		const once = migrateWebhookAuthentication([webhookNode('Webhook', {})]);
+
+		expect(migrateWebhookAuthentication(once)).toEqual(once);
 	});
 });

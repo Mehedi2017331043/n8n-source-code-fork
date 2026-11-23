@@ -201,7 +201,7 @@ export const WORKFLOW_BUILDER_CUES: ContextCueSet = {
 		},
 		{
 			id: 'inbound-auth-none',
-			text: 'Inbound trigger nodes (Webhook, Form, Chat, MCP Trigger) keep authentication `none` unless the user asks to authenticate inbound traffic.',
+			text: 'Webhook triggers use Header Auth by default. Keep it. Form, Chat and MCP Server triggers keep authentication `none` unless the user asks to authenticate inbound traffic.',
 			appliesWhen:
 				'Configuring a Webhook, Form, Chat or MCP Server trigger that receives inbound requests.',
 		},

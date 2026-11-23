@@ -19,9 +19,11 @@ function explicitlyRequestsInboundAuth(prompt: string): boolean {
 	return EXPLICIT_INBOUND_AUTH_PATTERNS.some((pattern) => pattern.test(prompt));
 }
 
+// Webhook defaults to Header Auth. Other inbound triggers default to none.
 function hasNonDefaultAuthentication(node: WorkflowNodeResponse): boolean {
 	const auth = node.parameters?.authentication;
-	return typeof auth === 'string' && auth !== 'none';
+	if (typeof auth !== 'string') return false;
+	return node.type === 'n8n-nodes-base.webhook' ? auth !== 'headerAuth' : auth !== 'none';
 }
 
 function getAuthentication(node: WorkflowNodeResponse): string {

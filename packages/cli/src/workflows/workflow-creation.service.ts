@@ -223,6 +223,9 @@ export class WorkflowCreationService {
 			batchContext?.credentialResolutionCache,
 		);
 
+		if (newWorkflow.nodes) {
+			newWorkflow.nodes = WorkflowHelpers.migrateWebhookAuthentication(newWorkflow.nodes);
+		}
 		WorkflowHelpers.addNodeIds(newWorkflow);
 		WorkflowHelpers.resolveNodeWebhookIds(newWorkflow, this.nodeTypes);
 		WorkflowHelpers.validateWorkflowStructure(newWorkflow);
