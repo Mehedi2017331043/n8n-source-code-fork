@@ -539,6 +539,9 @@ export class CommunityPackagesService {
 			| { installedPackage: InstalledPackages; version?: string; checksum?: string } = {},
 	) {
 		return await this.packageMutex(async () => {
+			// Check before any registry call. The direct install path otherwise skips the guard.
+			this.assertPackageChangesAllowed();
+
 			const isUpdate = 'installedPackage' in options;
 			const packageVersion = !options.version ? 'latest' : options.version;
 

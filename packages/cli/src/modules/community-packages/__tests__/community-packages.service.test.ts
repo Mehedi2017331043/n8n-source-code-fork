@@ -1793,4 +1793,16 @@ describe('CommunityPackagesService', () => {
 			);
 		});
 	});
+
+	describe('when community packages are disabled', () => {
+		beforeEach(() => {
+			config.enabled = false;
+		});
+
+		it('rejects a package install', async () => {
+			await expect(communityPackagesService.installPackage(mockPackageName())).rejects.toThrow(
+				'Community packages are disabled on this instance',
+			);
+		});
+	});
 });
